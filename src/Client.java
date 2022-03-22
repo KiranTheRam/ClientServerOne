@@ -11,6 +11,7 @@ public class Client {
 //        Message client is sending to the server
         String messageToBeSent = "[Client] Test Message, did the server receive it?";
 //        Displaying to the client what message is about to be sent
+        date = new Date();
         System.out.println(new Timestamp(date.getTime()) + " Sending the server this message: \"" + messageToBeSent+ "\"");
 //        Sending the message to the server
         PrintWriter sending = new PrintWriter(socket.getOutputStream(), true);
@@ -21,6 +22,7 @@ public class Client {
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
         String message = bufferedReader.readLine();
+        date = new Date();
         System.out.println(new Timestamp(date.getTime()) + message);
     }
 }
