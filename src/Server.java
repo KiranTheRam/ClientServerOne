@@ -8,24 +8,56 @@ public class Server {
         Date date = new Date();
         ServerSocket serverSocket = new ServerSocket(4999);
         System.out.println(new Timestamp(date.getTime()) + " [Server] Waiting for client to connect ...");
-        Socket socket = serverSocket.accept();
+        Socket client = serverSocket.accept();
 
-//        So we know a client has connected
-        date = new Date();
-        System.out.println(new Timestamp(date.getTime()) + " [Server] Client has connected");
+        while (client.isConnected()) {
+//         Set all objects to null initially
+            InputStreamReader inputStreamReader = null;
+            String message = null;
+            PrintWriter printWriter = null;
 
-//        Convert message sent by client and display it on server
-        InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-        String message = bufferedReader.readLine();
-        date = new Date();
-        System.out.println(new Timestamp(date.getTime()) +" "+ message);
+//            Try to set up inputStreamReader, which converts bytes to characters
+            try {
+                inputStreamReader = new InputStreamReader(client.getInputStream());
+            } catch (IOException e) {
+                System.err.println("IO Exception in ClientHandler: InputStreamReader");
+                e.printStackTrace();
+            }
 
-//        Send a message back to the client to inform them their message has been received
-        PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
-        printWriter.println(" [Server] You have successfully connected to the server and your message was received");
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
+//        Put message contents into a string variable and display it
+            try {
+                message = bufferedReader.readLine();
+//                If the client sent an exit message we must prompt the server, client, and close everything
+                if (message.equals("exit")) {
+                    date = new Date();
+                    System.out.println(new Timestamp(date.getTime()) + " [Server] Connection to client closed");
+                    printWriter = new PrintWriter(client.getOutputStream(), true);
+                    printWriter.println("[Server] Socket closed");
+                    try {
+                        bufferedReader.close();
+                        printWriter.close();
+                        client.close();
+                    } catch (IOException e) {
+                        System.err.println("Error trying to CloseEverything");
+                        e.printStackTrace();
+                    }
+                    break;
+                } else {
+//        Sending a message back to the client
+                    printWriter = new PrintWriter(client.getOutputStream(), true);
+                    printWriter.println("[Server] Your message was received!");
+                }
+            } catch (IOException e) {
+                System.err.println("IO Exception in ClientHandler: BufferedReader.readLine");
+                e.printStackTrace();
+            }
 
+//            Displays client's message in the server
+            date = new Date();
+            System.out.println(new Timestamp(date.getTime()) + " [Client]: " + message);
 
+        }
     }
 }
