@@ -2,27 +2,38 @@ import java.net.*;
 import java.io.*;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Scanner;
 
 public class Client {
-    public static void main(String[] args) throws IOException{
+    public static void main(String[] args) throws IOException {
         Socket socket = new Socket("localhost", 4999);
-        Date date = new Date();
+        Scanner scanner = new Scanner(System.in);
+        Date date;
+        String messageToBeSent;
+        String message;
 
-//        Message client is sending to the server
-        String messageToBeSent = "[Client] Test Message, did the server receive it?";
-//        Displaying to the client what message is about to be sent
-        date = new Date();
-        System.out.println(new Timestamp(date.getTime()) + " Sending the server this message: \"" + messageToBeSent+ "\"");
-//        Sending the message to the server
-        PrintWriter sending = new PrintWriter(socket.getOutputStream(), true);
-        sending.println(messageToBeSent);
+//        In a loop so multiple message can be sent to the server
+        while (socket.isConnected()) {
+            System.out.println("\nEnter message to send server (exit to end)");
+            messageToBeSent = scanner.nextLine();
 
-//        Receiving message back from the server.
-        InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+//            Send the message captured with scanner
+            PrintWriter sending = new PrintWriter(socket.getOutputStream(), true);
+            sending.println(messageToBeSent);
+            date = new Date();
+            System.out.println(new Timestamp(date.getTime()) + " [Client] Message has been sent");
 
-        String message = bufferedReader.readLine();
-        date = new Date();
-        System.out.println(new Timestamp(date.getTime()) + message);
+//            Receive message from server
+            InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            message = bufferedReader.readLine();
+
+//            Handling the closing of the socket
+            date = new Date();
+            System.out.println(new Timestamp(date.getTime()) + " " + message);
+            if (message.equals("[Server] Socket closed")) {
+                System.exit(1);
+            }
+        }
     }
 }
